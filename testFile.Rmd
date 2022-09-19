@@ -2,15 +2,201 @@
 title: "Untitled"
 author: "Luca Mannino"
 date: "19/09/2022"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+
+
+
+my_log <- function(x) log(x - 1)
+
+my_fun <- function(a, b) {
+  # browser()
+  la <- my_log(a) 
+  lb <- my_log(b)
+  la + lb
+}
+my_fun(1, 0)
+
+#> Warning in log(x - 1): NaNs produced
+
+#> [1] NaN
+
+Try to uncomment browser() or use debugonce(my_fun):
+
+debugonce(my_fun)
+my_fun(1, 0)
+
+
+```{r}
+mat <- matrix(sample(c(TRUE, FALSE), 12, replace = TRUE), 3)
+```
+
+```{r}
+matrix(as.integer(mat),3)
+```
+
 ```{r}
 
-hi
+
+mat + 0
+
 ```
+
+
+```{r}
+(vec <- 1:12)
+
+#>  [1]  1  2  3  4  5  6  7  8  9 10 11 12
+
+dim(vec) <- c(3, 4)
+vec
+```
+
+
+
+```{r}
+head(iris)
+```
+
+```{r}
+iris[,3,drop=FALSE]
+```
+
+```{r}
+iris[,3]
+```
+
+```{r}
+iris[3]
+
+```
+
+```{r}
+advr38pkg::sum_every(1:10, 2)
+```
+
+
+```{r}
+head(iris)
+```
+
+```{r}
+colMeans(iris[-5])
+```
+
+```{r}
+mat <- matrix(0, 10, 2); mat[c(5, 8, 9, 12, 15, 16, 17, 19)] <- 1; mat
+```
+
+
+
+```{r}
+advr38pkg::sum_every(1:10, 2)
+```
+
+```{r}
+function(sum_all) {
+  temp_C <- (temp_F - 32) * 5 / 9
+  return(temp_C)
+}
+```
+```{r}
+x <- 1:10
+```
+x
+
+```{r}
+n <- 2
+```
+
+
+```{r}
+matrix(x, nrow = n)
+```
+```{r}
+colSums(matrix(x, nrow = n))
+```
+
+```{r}
+sum_all <- function(x, n) {
+  sum <- colSums(matrix(x, nrow = n))
+  return(sum)
+}
+```
+```{r}
+sum_all(x,n)
+```
+
+
+```{r}
+colMeans(iris[-5])
+```
+
+
+```{r}
+iris[sapply(iris, is.numeric)]
+```
+```{r}
+colMeans(iris[sapply(iris, is.numeric)])
+```
+
+
+```{r}
+mat <- matrix(0, 10, 2); mat[c(5, 8, 9, 12, 15, 16, 17, 19)] <- 1; mat
+```
+
+
+```{r}
+decode <- matrix(c(0, NA, 1, 2), 2)
+```
+
+(0, 0) -> 0; (0, 1) -> 1; (1, 1) -> 2; (1, 0) -> NA
+```{r}
+#decode <- mat +1
+```
+
+
+```{r}
+apply(mat,1, function(row) decode[row[1] +1, row[2] +1])
+```
+
+```{r}
+apply(mat,1, function(row) decode[row+1])
+```
+
+
+
+```{r}
+str(iris)
+```
+
+```{r}
+skimr::skim(iris)
+```
+
+
+
+
+
+
+
+```{r}
+methods(summary)
+```
+
+
+```{r}
+list_of_int <- as.list(1:5)
+do.call("c", list_of_int)
+```
+
+
+
 
