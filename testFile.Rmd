@@ -703,6 +703,86 @@ tibble::enframe(a)
 
 
 ```{r}
-
+library(nycflights13)
+library(tidyverse)
 ```
+```{r}
+filter(flights, month == 1, day == 1)
+```
+
+```{r}
+filter(flights, month == 11 | month == 12)
+```
+```{r}
+nov_dec <- filter(flights, month %in% c(11, 12))
+```
+```{r}
+nov_dec
+```
+
+
+Had an arrival delay of two or more hours
+
+```{r}
+h2_del <- filter(flights, arr_delay > 120)
+h2_del
+```
+
+Flew to Houston (IAH or HOU)
+```{r}
+flew <- filter(flights, dest == "IAH" | dest == "HOU")
+flew
+```
+?flights to learn more about data
+Were operated by United, American, or Delta
+```{r}
+operator <- filter(flights, carrier == "UA" | carrier == "AA" | carrier == "DL" )
+operator
+```
+
+Departed in summer (July, August, and September)
+
+```{r}
+summer <- filter(flights, month %in% c(7,8,9) )
+summer
+```
+
+Arrived more than two hours late, but didn’t leave late
+
+```{r}
+operator <- filter(flights, arr_delay > 120 & dep_delay <= 0 )
+operator
+```
+
+Were delayed by at least an hour, but made up over 30 minutes in flight
+
+```{r}
+operator <- filter(flights, dep_delay > 60 & dep_delay- arr_delay >= 30 )
+operator
+```
+
+
+Departed between midnight and 6am (inclusive)
+ x > 2 & x < 5
+```{r}
+operator <- filter(flights, dep_time >= 0 &  dep_time <= 360)
+operator
+```
+
+
+Another useful dplyr filtering helper is between(). What does it do? Can you use it to simplify the code needed to answer the previous challenges?
+never use between not clear enough
+```{r}
+operator2 <- filter(flights, between(x =dep_time, 0,360))
+operator2
+operator == operator2
+```
+
+How many flights have a missing dep_time? What other variables are missing? What might these rows represent?
+```{r}
+table(is.na(flights$dep_time))
+skimr::skim(flights)
+```
+
+
 
