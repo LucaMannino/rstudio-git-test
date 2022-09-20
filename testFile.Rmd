@@ -7,10 +7,6 @@ output:
   html_document: default
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
 
 
 
@@ -182,6 +178,194 @@ skimr::skim(iris)
 ```
 
 
+```{r}
+x <- -5
+abs(x)
+```
+
+
+
+
+
+
+```{r}
+advr38pkg::split_ind(1:40, 3)
+```
+
+```{r}
+sample(1:10)
+```
+```{r}
+rep_len(1:3, 8)
+```
+
+Use sample(), rep_len() and split() to make a function that randomly splits some indices in a list of K groups of indices (like for cross-validation). [Which are the special cases that you should consider?]
+
+
+```{r}
+split(1:12, rep(letters[1:3], 4))
+```
+
+```{r}
+x <- sample(1:10)
+k <- 5
+split(x,rep(letters[1:5],k))
+```
+
+
+```{r}
+x <- 1:40
+n <- 3
+
+sample(seq_len(n), size = length(x), replace = TRUE)
+
+rep_len(seq_len(n), length(x))
+split(x, sample(n))
+```
+sample x with replacement 
+compute the mean
+do this 1000 times
+get quantiles 2.5% and 97.5%
+
+replicate()
+```{r}
+set.seed(1)
+(x <- rnorm(10))
+```
+
+
+
+```{r}
+set.seed(1)
+x <- replicate(1000, mean(sample(rnorm(10))))
+```
+
+
+
+```{r}
+set.seed(1)
+x <- rnorm(10)
+
+all_mean <- replicate(1000, {
+          x2 <- sample(x, replace =TRUE)
+          mean(x2)})
+```
+
+```{r}
+hist(all_mean)
+c1 <- quantile(all_mean, probs = c(0.025, 0.975))
+c1
+```
+
+hist(all_mean)
+
+
+```{r}
+set.seed(1); (x <- rnorm(10))
+all_mean <- replicate(1000, {
+  (x2 <- sample(x, replace = TRUE))
+  mean(x2)
+})
+hist(all_mean)
+(ci <- quantile(all_mean, probs = c(0.025, 0.975)))
+abline(v = ci, col = "chartreuse3")
+abline(v = 0, col = "red")
+```
+
+
+
+
+
+```{r}
+my_mtcars <- mtcars[c("mpg", "hp")]
+my_mtcars$my_col <- sample(c("mpg", "hp"), size = nrow(my_mtcars), replace = TRUE)
+head(my_mtcars)
+```
+
+
+
+```{r}
+#my_mtcars$my_val <- my_mtcars$my_col
+
+#my_mtcars$my_val[] == "hp" <-  my_mtcars$my_val[] = my_mtcars$hp[]
+```
+
+
+```{r}
+col <- match(my_mtcars$my_col, colnames(my_mtcars))
+row <- seq_len(nrow(my_mtcars))
+
+sapply(seq_along(row), function(k) {
+  my_mtcars[row[k], col[k]]
+  
+  
+  
+  
+})
+
+
+my_mtcars[1:2][cbind(row,col)]
+```
+
+
+```{r}
+count1 <- 0
+count2 <- 0
+f <- function(i) {
+  count1 <-  count1 + 1  ## will assign a new (temporary) count1
+  count2 <<- count2 + 1  ## will assign count2 on top
+  i + 1
+}
+sapply(1:10, f)
+count1
+count2
+```
+
+
+```{r}
+f1 <- function(...) {
+  list(...)
+}
+f1(a = 2, b = 3)
+```
+```{r}
+summary(iris)
+```
+
+
+
+
+```{r}
+agent007 <- list(first = "James", last = "Bond")
+agent007
+
+class(agent007) <- "Person"  ## "agent007" is now an object of class "Person"
+# Just make a function called <method_name>.<class_name>()
+print.Person <- function(x) {
+  print(glue::glue("My name is {x$last}, {x$first} {x$last}."))
+  invisible(x)
+}
+
+
+Person <- function(first, last) {
+  structure(list(first = first, last = last), class = "Person")
+}
+(me <- Person("Florian", "Privé"))
+
+Worker <- function(first, last, job) {
+  obj <- Person(first, last)
+  obj$job <- job
+  class(obj) <- c("Worker", class(obj))
+  obj
+}
+print.Worker <- function(x) {
+  print.Person(x) 
+  print(glue::glue("I am a {x$job}."))
+  invisible(x)
+}
+
+(worker_007 <- Worker("James", "Bond", "secret agent"))
+```
 
 
 
