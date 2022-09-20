@@ -784,5 +784,67 @@ table(is.na(flights$dep_time))
 skimr::skim(flights)
 ```
 
+How could you use arrange() to sort all missing values to the start? (Hint: use is.na())
+slice() #check slice function
+```{r}
+arrange(flights, desc(is.na(dep_time)))
+arrange(flights, !is.na(dep_time))
+```
+Sort flights to find the most delayed flights. Find the flights that left earliest.
 
+```{r}
+arrange(flights, desc(dep_delay))
+arrange(flights, dep_time)
+arrange(flights, dep_time != 2400)
+```
+
+Sort flights to find the fastest (highest speed) flights.
+
+```{r}
+flights$speed <- flights$distance/flights$air_time
+arrange(flights, desc(distance/air_time))
+arrange(flights, desc(speed))
+```
+```{r}
+select(flights, year, month, day)
+```
+```{r}
+# Select all columns except those from year to day (inclusive)
+select(flights, -(year:day))
+```
+
+move variables of choice to start
+```{r}
+select(flights, time_hour, air_time, everything())
+```
+```{r}
+rename(flights, tail_num = tailnum)
+```
+rename while selecting
+```{r}
+select(flights,t= time_hour, a=air_time)
+```
+
+```{r}
+select(flights, time_hour,time_hour, time_hour)
+```
+
+```{r}
+vars <- c("year", "month", "day", "dep_delay", "arr_delay")
+select(flights, any_of(vars))
+select(flights, vars)
+```
+
+```{r}
+select(flights, contains("TIME"))
+```
+
+```{r}
+#select(flights, contains( any_of(vars)))
+select(flights, contains(vars))
+```
+
+```{r}
+select(flights, contains("TIME"),ignore_cases=FALSE)
+```
 
