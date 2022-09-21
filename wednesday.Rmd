@@ -1,0 +1,322 @@
+---
+title: "Wdnesday_Chapter4"
+author: "Luca Mannino"
+date: "21/09/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(nycflights13)
+library(tidyverse)
+```
+```{r}
+library(tidyverse)
+library(nycflights13)
+by_dest <- group_by(flights, dest)
+delay <- summarise(by_dest,
+                   count = n(),
+                   dist = mean(distance, na.rm = TRUE),
+                   delay = mean(arr_delay, na.rm = TRUE)
+)
+#> `summarise()` ungrouping output (override with `.groups` argument)
+delay <- filter(delay, count > 20, dest != "HNL")# It looks like delays increase with distance up to ~750 miles
+# and then decrease. Maybe as flights get longer there's more
+# ability to make up delays in the air?
+ggplot(data = delay, mapping = aes(x = dist, y = delay)) +
+  geom_point(aes(size = count), alpha = 1/3) +
+  geom_smooth(se = FALSE)
+#> `geom_smooth()` using method = 'loess' and formula 'y ~ x'count(flights, dest)
+flights %>%
+  group_by(dest) %>%
+  summarise(n = n())
+class(flights)
+daily <- group_by(flights, year, month, day)
+class(daily)
+(per_day   <- summarise(daily, flights = n(), .groups = "keep"))
+flights_rowwise <- flights %>%
+  rowwise()
+microbenchmark::microbenchmark(
+  mutate(flights_rowwise, arr_time2 = arr_time + 1),
+  mutate(flights, arr_time2 = arr_time + 1),
+  times = 5)
+mutate(flights_rowwise, arr_time2 = arr_time + 1) %>%
+  ungroup()
+```
+
+```{r}
+not_cancelled <- flights %>% 
+  filter(!is.na(dep_delay), !is.na(arr_delay))
+
+not_cancelled %>% 
+  group_by(year, month, day) %>% 
+  summarise(mean = mean(dep_delay))
+```
+
+
+delays <- not_cancelled %>% 
+  group_by(tailnum) %>% 
+  summarise(
+    delay = mean(arr_delay)
+  )
+#> `summarise()` ungrouping output (override with `.groups` argument)
+
+ggplot(data = delays, mapping = aes(x = delay)) + 
+  geom_freqpoly(binwidth = 10)
+```{r}
+delays <- not_cancelled %>% 
+  group_by(tailnum) %>% 
+  summarise(
+    delay = mean(arr_delay)
+  )
+#> `summarise()` ungrouping output (override with `.groups` argument)
+
+ggplot(data = delays, mapping = aes(x = delay)) + 
+  geom_freqpoly(binwidth = 10)
+```
+  Brainstorm at least 5 different ways to assess the typical delay characteristics of a group of flights. Consider the following scenarios:
+
+    A flight is 15 minutes early 50% of the time, and 15 minutes late 50% of the time.
+
+    A flight is always 10 minutes late.
+
+    A flight is 30 minutes early 50% of the time, and 30 minutes late 50% of the time.
+
+    99% of the time a flight is on time. 1% of the time it’s 2 hours late.
+
+```{r}
+class(flights)
+?flights
+
+
+flights %>% 
+  group_by(flight) %>% 
+  summarise(med_delay = median(arr_delay, na.rm=TRUE)) %>% 
+  filter(med_delay <= -15)
+
+flights %>% 
+  group_by(flight) %>% 
+  summarise(prop_delay = mean(arr_delay, na.rm=TRUE)) %>% 
+  filter(prop_delay <= -15)
+```
+```{r}
+flights %>%
+  group_by(flight) %>%
+  summarise(prop_very_early = mean(arr_delay <= -15, na.rm = TRUE),
+            n = n()) %>%
+  filter(prop_very_early >= 0.5, n >= 20) %>%
+  arrange(desc(prop_very_early))
+```
+
+
+```{r}
+flights %>%
+  group_by(flight) %>%
+  summarise(prop_very_early = mean(arr_delay <= -15, na.rm = TRUE),
+            n = n()) %>%
+  filter(prop_very_early == 1) %>% 
+  arrange(desc(n))
+```
+not_cancelled %>% count(dest) and not_cancelled %>% count(tailnum, wt = distance) (without using count())
+
+```{r}
+not_cancelled %>% count(dest)
+```
+wt = weighted sum
+```{r}
+not_cancelled %>%
+  group_by(dest) %>% 
+  summarise(destination = unique(dest)#, na.rm = TRUE),
+            ,n = n())
+not_cancelled %>%
+  group_by(dest) %>% 
+  summarise(n = n())
+  
+  
+```
+
+```{r}
+not_cancelled %>% count(tailnum, wt = distance)
+```
+```{r}
+not_cancelled %>%
+  group_by(tailnum) %>% 
+  summarise(destination = unique(dest)#, na.rm = TRUE),
+            ,n = n())
+```
+
+```{r}
+table(dep = is.na(flights$dep_delay), ar = is.na(flights$arr_delay))
+```
+
+
+```{r}
+not_cancelled2 <- filter(flights, !is.na(arr_delay))
+microbenchmark::microbenchmark(
+any(is.na(not_cancelled2)),
+anyNA(not_cancelled2),
+times = 10)
+```
+
+```{r}
+mean(complete.cases(not_cancelled2))
+```
+
+
+```{r}
+table(dep = is.na(flights$dep_delay),
+      arr = is.na(flights$arr_delay))
+not_cancelled2 <- filter(flights, !is.na(arr_delay))
+microbenchmark::microbenchmark(
+  any(is.na(not_cancelled2)),
+  anyNA(not_cancelled2),
+  times = 10
+)
+mean(complete.cases(not_cancelled2))
+flights %>%
+  filter(., complete.cases(.))
+f(x, y)
+y %>% f(x, .)
+```
+
+```{r}
+flights %>% 
+  group_by(year, month, day) %>% 
+  summarise(nb_canceled = sum(is.na(dep_delay)),
+            n = n()) %>%
+  arrange(desc(nb_canceled))
+```
+
+```{r}
+flights %>%
+  group_by(year, month, day) %>%
+  summarize(prop_canceled = mean(is.na(dep_delay)),
+            avg_delay = mean(dep_delay, na.rm = TRUE)) %>%
+  ggplot(aes(prop_canceled, avg_delay)) +
+  geom_point() +
+  theme_bw(13) +
+  geom_smooth()
+```
+sum depends on group operators don't
+
+which plane has the worst on time regord
+```{r}
+flights %>% 
+  group_by(tailnum) %>% 
+  filter(sum(!is.na(arr_delay))>0) %>% 
+  summarise(max_arr_delay = max(arr_delay, na.rm = TRUE)) %>% 
+  arrange(tailnum)
+```
+
+```{r}
+flights %>%
+  group_by(tailnum) %>%
+  filter(sum(!is.na(arr_delay)) > 0) %>%
+  summarise(max_delay = max(arr_delay, na.rm = TRUE)) %>%
+  arrange(desc(max_delay)) %>% 
+  slice_max(max_delay, n = 1)
+```
+
+What time of day should you fly if you want to avoid delays as much as possible?
+
+
+
+```{r}
+flights %>% 
+  group_by(hour) %>% 
+  summarise(avg_delay = mean(arr_delay, na.rm=TRUE, n =n() %>% 
+                               ggplot()))
+```
+
+```{r}
+
+```
+mutate join
+
+
+
+```{r}
+flights2 <- flights %>% 
+  select(year:day, hour, origin, dest, tailnum, carrier)
+flights2
+```
+airlines is anothe table
+```{r}
+flights2 %>%
+  select(-origin, -dest) %>% 
+  left_join(airlines, by = "carrier")
+```
+
+
+Compute the average delay by destination, then join on the airports data frame so you can show the spatial distribution of delays. Here’s an easy way to draw a map of the United States:
+
+
+
+
+```{r} 
+#should have added na.rm= true as shown in next snip
+flights2 <- flights %>% 
+  group_by(dest) %>% 
+  filter(arr_delay>0) %>% 
+  summarise(avg_arr_delay = mean(arr_delay))# %>% 
+  #filter(avg_arr_delay > 0)
+
+flights2
+
+airports %>% 
+  left_join(flights2, c("faa" = "dest"))
+
+
+airports %>%
+  semi_join(flights, c("faa" = "dest")) %>%
+  left_join(flights2,c("faa" = "dest"))%>%
+  ggplot(aes(lon, lat)) +
+    borders("state") +
+    geom_point(aes(size=avg_arr_delay)) +
+    #scale_color_viridis_c()+
+    coord_quickmap()
+
+```
+remmber na.rm = true
+```{r}
+avg_delay_per_dest <- flights %>%
+  group_by(dest) %>%
+  summarize(avg_delay = mean(arr_delay, na.rm = TRUE)) %>%
+  print()
+avg_delay_per_dest %>%
+  left_join(airports, by = c("dest" = "faa")) %>%
+  ggplot(aes(lon, lat, size = avg_delay, color = avg_delay)) +
+  borders("state") +
+  geom_point() +
+  coord_quickmap() +
+  theme_bw(13) +
+  scale_color_viridis_c(direction = -1)
+```
+
+
+
+
+```{r}
+flights %>%
+  left_join(select(airports, c(faa, lat, lon)),
+            by = c("dest" = "faa")) %>%
+  left_join(select(airports, c(faa, lat, lon)),
+            by = c("origin" = "faa"),  suffix = c("_dest", "_origin"))
+
+```
+
+
+
+```{r}
+
+```
+
+
+
+
+
+
+
