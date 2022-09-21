@@ -237,8 +237,31 @@ last_row <- mat_big[nrow(mat_big), ]system.time({
 
 
 
+```{r}
+M <- 50
+step1 <- runif(M)
+A <- rnorm(M)
+N <- 1e4
+pre_pow <- 
+tau <- matrix(0, N + 1, M)
+tau[1, ] <- A
+
+  for (i in 2:nrow(tau)) {
+    tau[i, ] <- tau[i - 1, ] + step1[] * 1.0025^(i - 2)
+  
+} 
+tau
+?sweep
+sweep(mat_big, 2, 10 * last_row, '*')
+```
 
 
+
+
+
+```{r}
+matrixstats::
+```
 
 
 
