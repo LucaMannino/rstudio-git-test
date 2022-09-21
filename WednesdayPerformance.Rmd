@@ -1,0 +1,261 @@
+---
+title: "WednesdayPerformance"
+author: "Luca Mannino"
+date: "21/09/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+ok
+```{r}
+system.time({
+  current_sum <- 0
+  res2 <- double(length(x))
+  for (i in seq_along(x)) {
+    current_sum <- current_sum + x[i]
+    res2[i] <- current_sum
+  }
+})
+```
+best:
+```{r}
+system.time(res5 <- cumsum(x))
+```
+
+
+with cbind concatenate a new column
+```{r}
+n <- 1e3
+max <- 1:1000
+system.time({
+  mat <- NULL
+  for (m in max) {
+    mat <- cbind(mat, runif(n, max = m))
+  }
+})
+```
+
+```{r}
+system.time({
+  mat3 <- matrix(0, n, length(max))
+  for (i in seq_along(max)) {
+    mat3[, i] <- runif(n, max = max[i])
+  }
+})
+```
+
+```{r}
+system.time({
+  l <- list()
+  for (i in seq_along(max)) {
+    l[[i]] <- runif(n, max = max[i])
+  }
+  mat4 <- do.call("cbind", l)
+})
+```
+
+
+```{r}
+system.time(
+  mat4 <- sapply(max, function(m) runif(n, max = m)))
+
+```
+check difference:
+
+df[[i,j]]
+df[i,j]
+
+check system.time line by line and function by function... learn how to use it
+profiler from r studio can help figure out whats the problem
+profvis::profvis
+
+
+
+check vectorise code definition
+vectorisation:
+
+```{r}
+
+monte_carlo <- function(N) {
+  
+  hits <- 0
+ u1 <- runif(N)
+ u2 <- runif(N)
+  cond <- u1 ^ 2 > u2
+  mean(cond)
+}
+
+```
+
+```{r}
+system.time(res <- monte_carlo(1e6))
+```
+
+```{r}
+set.seed(1)
+X <- matrix(rnorm(1000), ncol = 5)
+Y <- matrix(rnorm(5000), ncol = 5)
+```
+
+
+
+```{r}
+system.time({
+  dist <- matrix(NA_real_, nrow(X), nrow(Y))
+  for (i in seq_len(nrow(X))) {
+    for (j in seq_len(nrow(Y))) {
+      dist[i, j] <- sqrt(sum((X[i, ] - Y[j, ])^2))
+    }
+  }
+})
+dist
+```
+
+
+```{r}
+x2 <- sweep(X,2,colMeans(X), FUN = "-")
+
+x2
+```
+
+```{r}
+set.seed(1)
+X <- matrix(rnorm(1000), ncol = 5)
+Y <- matrix(rnorm(5000), ncol = 5)
+system.time({
+  dist <- matrix(NA_real_, nrow(X), nrow(Y))
+  for (i in seq_len(nrow(X))) {
+    for (j in seq_len(nrow(Y))) {
+      dist[i, j] <- sqrt(sum((X[i, ] - Y[j, ])^2))
+    }
+  }
+})
+system.time({
+  dist2 <- matrix(NA_real_, nrow(X), nrow(Y))
+  for (i in seq_len(nrow(X))) {
+    dist2[i, ] <- sqrt(rowSums(sweep(Y, 2, X[i, ], '-')^2))
+  }
+})
+system.time(
+  dist3 <- sqrt(outer(rowSums(X^2), rowSums(Y^2), '+') - 2 * tcrossprod(X, Y))
+)
+all.equal(dist3, dist)
+```
+
+
+start code with proto loop and then vectorise after
+
+
+```{r}
+set.seed(1)
+N <- 1e4
+x <- 0
+count <- 0
+
+for (i in seq_len(N)) {
+  y <- rnorm(i)
+  x <- x + y
+  if(x < 0) count <- count +1
+  
+  
+  
+}
+```
+
+
+
+```{r}
+set.seed(1)
+system.time(p <- advr38pkg::random_walk_neg_prop(1e7))
+```
+
+
+
+```{r}
+mat <- as.matrix(mtcars)
+ind <- seq_len(nrow(mat))
+mat_big <- mat[rep(ind, 1000), ]  ## 1000 times bigger dataset
+last_row <- mat_big[nrow(mat_big), ]
+
+
+system.time({
+  
+    for (i in 1:nrow(mat_big)) {
+      mat_big[i, ] <- mat_big[i, ] *10 * last_row[]
+    }
+  
+})
+
+
+#2 = margin whichi is number of column, function is multiply you multiply each row by  maybe check some sweep function egxample
+sweep(x = mat_big,2,10*last_row,"*")
+```
+
+
+
+
+```{r}
+mat_big[1, 1] <- 10 * mat_big[1, 1] * last_row[1]
+```
+
+
+
+
+
+
+```{r}
+mat <- as.matrix(mtcars)
+ind <- seq_len(nrow(mat))
+mat_big <- mat[rep(ind, 1000), ]  ## 1000 times bigger dataset
+last_row <- mat_big[nrow(mat_big), ]system.time({
+  mat_big4 <- mat_big
+  for (j in 1:ncol(mat_big)) {
+    for (i in 1:nrow(mat_big)) {
+      mat_big4[i, j] <- 10 * mat_big[i, j] * last_row[j]
+    }
+  }
+})system.time({
+  mat_big2 <- mat_big
+  for (i in 1:nrow(mat_big)) {
+    mat_big2[i, ] <- mat_big[i, ] * (10 * last_row)
+  }
+})system.time(
+  mat_big3 <- sweep(mat_big, 2, 10 * last_row, '*')
+)all.equal(mat_big3, mat_big2)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
